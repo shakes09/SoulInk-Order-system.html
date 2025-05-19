@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SoulInk Order Form with QR Code</title>
+  <style>
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 25px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #ff4e50;
+      text-shadow: 0 0 10px #ff4e50aa;
+    }
+    form {
+      background: #16213e;
+      padding: 25px 30px 35px;
+      border-radius: 15px;
+      width: 350px;
+      box-shadow: 0 0 20px #0f3460;
+    }
+    input, select {
+      width: 100%;
+      margin: 10px 0 20px 0;
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      color: #222;
+    }
+    input::placeholder {
+      color: #888;
+    }
+    select {
+      color: #222;
+    }
+    button {
+      width: 100%;
+      background: #ff4e50;
+      border: none;
+      padding: 14px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      box-shadow: 0 0 8px #ff4e50cc;
+    }
+    button:hover {
+      background: #e04143;
+    }
+    #qrCode {
+      margin-top: 40px;
+      background: #0f3460;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #0f3460bb;
+      text-align: center;
+    }
+    #qrCode canvas {
+      margin-bottom: 15px;
+    }
+    #qrCode p {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ff4e50;
+    }
+    #paymentNote {
+      background: #16213e;
+      color: #e0e0e0;
+      padding: 15px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 20px;
+      width: 350px;
+      box-shadow: 0 0 10px #0f3460aa;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>SoulInk Order Form</h1>
+  <form id="orderForm">
+    <input type="text" id="name" placeholder="Full Name" required />
+    <input type="tel" id="phone" placeholder="Phone Number" required />
+    <input type="text" id="address" placeholder="Delivery Address" required />
+    <select id="size" required>
+      <option value="" disabled selected>Select Size</option>
+      <option value="XS">XS</option>
+      <option value="S">Small</option>
+      <option value="M">Medium</option>
+      <option value="L">Large</option>
+      <option value="XL">XL</option>
+      <option value="XXL">XXL</option>
+    </select>
+    <input type="number" id="deposit" placeholder="Deposit or Full Amount (ZAR)" min="0" required />
+    
+    <select id="paymentType" required>
+      <option value="" disabled selected>Payment Type</option>
+      <option value="Deposit">Deposit</option>
+      <option value="Full">Full Payment</option>
+    </select>
+
+    <button type="submit">Submit Order</button>
+  </form>
+
+  <div id="paymentNote">
+    <p><strong>IMPORTANT:</strong><br>
+    After submitting your order and receiving your QR code, please <span style="color: #ff4e50;">screenshot it and send it</span> to us.<br>
+    Once received, you’ll be sent the <span style="color: #ff4e50;">banking/payment details</span> to complete your order.<br>
+    Use your full name as the reference when paying.<br>
+    Refunds only allowed within <span style="color: #ff4e50;">2 days</span> of payment.
+    </p>
+  </div>
+
+  <div id="qrCode"></div>
+
+  <!-- Load QRCode.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+  <script>
+    const form = document.getElementById('orderForm');
+    const qrCodeDiv = document.getElementById('qrCode');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      qrCodeDiv.innerHTML = '';
+
+      const orderId = 'SOULINK-' + Date.now();
+
+      const orderData = {
+        orderId,
+        name: form.name.value.trim(),
+        phone: form.phone.value.trim(),
+        address: form.address.value.trim(),
+        size: form.size.value,
+        amountPaid: form.deposit.value,
+        paymentType: form.paymentType.value,
+        status: 'Pending'
+      };
+
+      const orderText = `
+Order ID: ${orderData.orderId}
+Name: ${orderData.name}
+Phone: ${orderData.phone}
+Address: ${orderData.address}
+Size: ${orderData.size}
+Amount Paid: R${orderData.amountPaid}
+Payment Type: ${orderData.paymentType}
+Status: ${orderData.status}
+`;
+
+      try {
+        const canvas = document.createElement('canvas');
+        await QRCode.toCanvas(canvas, orderText, { width: 220 });
+        qrCodeDiv.appendChild(canvas);
+
+        const p = document.createElement('p');
+        p.innerHTML = `✅ Order ID: <strong>${orderData.orderId}</strong><br>Screenshot or save this QR code for delivery and payment info.`;
+        qrCodeDiv.appendChild(p);
+
+        form.reset();
+      } catch (err) {
+        qrCodeDiv.textContent = 'Failed to generate QR code.';
+        console.error(err);
+      }
+    });
+  </script>
+
+</body>
+</html>
